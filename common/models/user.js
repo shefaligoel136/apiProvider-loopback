@@ -16,6 +16,8 @@ module.exports = function (user) {
     let clientId = generateNum(32);
     let clientSecret = generateNum(12);
 
+    let APIs;
+
     const hmac = await createHmac("SHA256", clientSecret)
       .update(clientId, "utf-8")
       .digest("base64");
@@ -39,7 +41,13 @@ module.exports = function (user) {
     });
     // console.log(userD);
     const savedData = await userD.save();
-    return { clientId, clientSecret, savedData };
+    Object.entries(privateApi).map((value, key) => {
+      if (value.indexOf(serviceName) > -1) {
+        APIs = value[1];
+        // console.log(value[1])
+      }
+    });
+    return { clientId, clientSecret, savedData, APIs };
   };
 
   user.usePrivateAPI = async function (
@@ -48,7 +56,6 @@ module.exports = function (user) {
     clientId,
     clientSecret
   ) {
-
     let APIs;
 
     const hmac = await createHmac("SHA256", clientSecret)
@@ -66,20 +73,23 @@ module.exports = function (user) {
           // console.log(value[1])
         }
       });
-      return { APIs };
+      if(APIs){
+        return { APIs };
+      }else{
+        return "Something is wrong"
+      }
     } else {
       return "not validated to use API";
     }
   };
 
   user.usePublicAPI = async function () {
-
     let APIs;
 
     Object.entries(publicApi).map((value, key) => {
       APIs = value[1];
     });
-    return {APIs};
+    return { APIs };
   };
 
   user.remoteMethod("getPrivateAPI", {
