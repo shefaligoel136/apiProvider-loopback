@@ -2,31 +2,37 @@
   "name": "user",
   "base": "User",
   "idInjection": true,
+  "options": {
+    "validateUpsert": true,
+    "allowExtendedOperators": true
+  },
   "properties": {
-    "applicationDetails": {
-      "type": {
-        "appName": "string",
-        "appId": "string",
-        "servicesDetails": [
-          {
-            "type": {
-              "serviceName": {
-                "type": "string"
-              },
-
-              "serviceCredentials": {
-                "clientId": {
+    "applicationDetails": [
+      {
+        "type": {
+          "appName": "string",
+          "appId": "string",
+          "servicesDetails": [
+            {
+              "type": {
+                "serviceName": {
                   "type": "string"
                 },
-                "clientSecret": {
-                  "type": "string"
+
+                "serviceCredentials": {
+                  "clientId": {
+                    "type": "string"
+                  },
+                  "clientSecret": {
+                    "type": "string"
+                  }
                 }
               }
             }
-          }
-        ]
+          ]
+        }
       }
-    }
+    ]
   },
   "validations": [],
   "relations": {},

@@ -11,8 +11,6 @@ var generator = require("generate-password");
 
 module.exports = function (user) {
   user.getPrivateAPI = async function (id, appName, serviceName) {
-    let appId = generateNum(8);
-
     let clientId = generateNum(32);
     let clientSecret = generateNum(12);
 
@@ -21,33 +19,61 @@ module.exports = function (user) {
     const hmac = await createHmac("SHA256", clientSecret)
       .update(clientId, "utf-8")
       .digest("base64");
-
-    // console.log("id", appName, serviceName);
-    const userD = await user.findById(id);
-
-    userD.updateAttributes({
-      applicationDetails: {
-        appName: appName,
-        appId: appId,
-        serviceDetails: [
-          {
-            serviceName: serviceName,
-            serviceCredentials: {
-              clientId: hmac,
-            },
-          },
-        ],
+      
+    const userD = await user.findOne({
+      where: {
+        _id: id,
+        applicationDetails: { $elemMatch: { appName: appName } },
       },
     });
-    // console.log(userD);
+
+    console.log("userD", userD);
+    if (!userD) {
+      return "app not found";
+    }
+    userD.updateAttributes({
+      applicationDetails: [
+        {
+          appName: appName,
+          appId: userD.applicationDetails[0].appId,
+          serviceDetails: [
+            {
+              serviceName: serviceName,
+              serviceCredentials: {
+                clientId: hmac,
+              },
+            },
+          ],
+        },
+      ],
+    });
+    console.log(userD);
     const savedData = await userD.save();
     Object.entries(privateApi).map((value, key) => {
       if (value.indexOf(serviceName) > -1) {
         APIs = value[1];
-        // console.log(value[1])
       }
     });
     return { clientId, clientSecret, savedData, APIs };
+  };
+
+  user.createApp = async function (id, appName) {
+    let appId = generateNum(8);
+    await user.update(
+      { _id: id },
+      {
+        // $addToSet: {
+        applicationDetails: [
+          {
+            appName: appName,
+            appId: appId,
+          },
+        ],
+        // },
+      }
+    );
+
+    return user.findById(id);
   };
 
   user.usePrivateAPI = async function (
@@ -73,10 +99,10 @@ module.exports = function (user) {
           // console.log(value[1])
         }
       });
-      if(APIs){
+      if (APIs) {
         return { APIs };
-      }else{
-        return "Something is wrong"
+      } else {
+        return "Something is wrong";
       }
     } else {
       return "not validated to use API";
@@ -91,6 +117,30 @@ module.exports = function (user) {
     });
     return { APIs };
   };
+
+  user.remoteMethod("createApp", {
+    description: "Creates your app",
+    accepts: [
+      {
+        arg: "userId",
+        type: "string",
+        required: true,
+      },
+      {
+        arg: "appName",
+        type: "string",
+        required: true,
+      },
+    ],
+    http: {
+      path: "/createApp",
+      verb: "post",
+    },
+    returns: {
+      arg: "details",
+      type: "object",
+    },
+  });
 
   user.remoteMethod("getPrivateAPI", {
     description: "Returns the app keys and client id for the service used",
