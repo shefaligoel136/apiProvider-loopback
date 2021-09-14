@@ -1,0 +1,29 @@
+{
+  "name": "application",
+  "plural": "applications",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "appName": {
+      "type": "string",
+      "required": true
+    },
+    "appId": {
+      "type": "string",
+      "required": true
+    }
+  },
+  "validations": [],
+  "relations": {
+    "services": {
+      "type": "hasMany",
+      "model": "service",
+      "foreignKey": ""
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

@@ -10,7 +10,7 @@ var createHmac = require("crypto").createHmac;
 var generator = require("generate-password");
 
 module.exports = function (user) {
-  user.getPrivateAPI = async function (id, appName, serviceName) {
+  user.getPrivateAPI = async function (id, appId, serviceName) {
     let clientId = generateNum(32);
     let clientSecret = generateNum(12);
 
@@ -19,103 +19,76 @@ module.exports = function (user) {
     const hmac = await createHmac("SHA256", clientSecret)
       .update(clientId, "utf-8")
       .digest("base64");
-      
-    const userD = await user.findOne({
-      where: {
-        _id: id,
-        applicationDetails: { $elemMatch: { appName: appName } },
-      },
-    });
 
-    console.log("userD", userD);
-    if (!userD) {
-      return "app not found";
-    }
-    userD.updateAttributes({
-      applicationDetails: [
-        {
-          appName: appName,
-          appId: userD.applicationDetails[0].appId,
-          serviceDetails: [
-            {
-              serviceName: serviceName,
-              serviceCredentials: {
-                clientId: hmac,
-              },
-            },
-          ],
-        },
-      ],
-    });
-    console.log(userD);
-    const savedData = await userD.save();
-    Object.entries(privateApi).map((value, key) => {
-      if (value.indexOf(serviceName) > -1) {
+    Object.entries(privateApi).forEach((value, key) => {
+      if (value.indexOf(serviceName) != -1) {
         APIs = value[1];
+      } else {
+        return { INFO: "Service not available" };
       }
     });
-    return { clientId, clientSecret, savedData, APIs };
+
+    if (APIs) {
+      const userD = await user.update(
+        {
+          id: id,
+        },
+        {
+          $addToSet: {
+            "applicationDetails.$[elem].serviceDetails": {
+              serviceName: serviceName,
+              serviceCredentials: hmac,
+            },
+          },
+        },
+        { arrayFilters: [{ "elem.appId": appId }], multi: true }
+      );
+      console.log(userD);
+      return { clientId, clientSecret, userD, APIs };
+    } else {
+      return { INFO: "Service not available" };
+    }
   };
 
   user.createApp = async function (id, appName) {
     let appId = generateNum(8);
+
     await user.update(
       { _id: id },
       {
-        // $addToSet: {
-        applicationDetails: [
-          {
+        $addToSet: {
+          applicationDetails: {
             appName: appName,
             appId: appId,
           },
-        ],
-        // },
+        },
       }
     );
 
     return user.findById(id);
   };
 
-  user.usePrivateAPI = async function (
-    id,
-    serviceName,
-    clientId,
-    clientSecret
-  ) {
+  user.usePrivateAPI = async function (req, res) {
     let APIs;
 
-    const hmac = await createHmac("SHA256", clientSecret)
-      .update(clientId, "utf-8")
-      .digest("base64");
-
-    const userD = await user.findById(id);
-    // console.log(userD);
-    let checkCred = userD.applicationDetails.serviceDetails[0];
-    // console.log(userD.applicationDetails.serviceDetails[0]);
-    if (checkCred.serviceCredentials.clientId === hmac) {
-      Object.entries(privateApi).map((value, key) => {
-        if (value.indexOf(serviceName) > -1) {
-          APIs = value[1];
-          // console.log(value[1])
-        }
-      });
-      if (APIs) {
-        return { APIs };
-      } else {
-        return "Something is wrong";
+    Object.entries(privateApi).forEach((value, key) => {
+      if (value.indexOf(req.headers.tokenname) > -1) {
+        APIs = value[1];
       }
+    });
+    if (APIs) {
+      return { APIs };
     } else {
-      return "not validated to use API";
+      return "Something is wrong";
     }
   };
 
   user.usePublicAPI = async function () {
     let APIs;
-
-    Object.entries(publicApi).map((value, key) => {
+    Object.entries(publicApi).forEach((value, key) => {
       APIs = value[1];
     });
-    return { APIs };
+    return APIs;
   };
 
   user.remoteMethod("createApp", {
@@ -151,7 +124,7 @@ module.exports = function (user) {
         required: true,
       },
       {
-        arg: "appName",
+        arg: "appId",
         type: "string",
         required: true,
       },
@@ -175,24 +148,20 @@ module.exports = function (user) {
     description: "validate the user to access the api",
     accepts: [
       {
-        arg: "userId",
-        type: "string",
+        type: "object",
+        arg: "req",
         required: true,
+        http: {
+          source: "req",
+        },
       },
       {
-        arg: "serviceName",
-        type: "string",
+        type: "object",
+        arg: "res",
         required: true,
-      },
-      {
-        arg: "clientId",
-        type: "string",
-        required: true,
-      },
-      {
-        arg: "clientSecret",
-        type: "string",
-        required: true,
+        http: {
+          source: "res",
+        },
       },
     ],
     http: {
@@ -207,6 +176,7 @@ module.exports = function (user) {
 
   user.remoteMethod("usePublicAPI", {
     description: "To get Public API",
+
     http: {
       path: "/usePublicAPI",
       verb: "get",

@@ -53,5 +53,13 @@
         "permission": "ALLOW"
       }
     ]
+  },
+  "application": {
+    "dataSource": "db",
+    "public": true
+  },
+  "service": {
+    "dataSource": "db",
+    "public": true
   }
 }

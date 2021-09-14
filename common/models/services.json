@@ -1,0 +1,29 @@
+{
+  "name": "service",
+  "plural": "services",
+  "base": "PersistedModel",
+  "idInjection": true,
+  "options": {
+    "validateUpsert": true
+  },
+  "properties": {
+    "serviceName": {
+      "type": "string",
+      "required": true
+    },
+    "clientId": {
+      "type": "string",
+      "required": true
+    }
+  },
+  "validations": [],
+  "relations": {
+    "applications": {
+      "type": "belongsTo",
+      "model": "application",
+      "foreignKey": ""
+    }
+  },
+  "acls": [],
+  "methods": {}
+}

@@ -3,8 +3,7 @@
   "base": "User",
   "idInjection": true,
   "options": {
-    "validateUpsert": true,
-    "allowExtendedOperators": true
+    "validateUpsert": true
   },
   "properties": {
     "applicationDetails": [
@@ -15,18 +14,8 @@
           "servicesDetails": [
             {
               "type": {
-                "serviceName": {
-                  "type": "string"
-                },
-
-                "serviceCredentials": {
-                  "clientId": {
-                    "type": "string"
-                  },
-                  "clientSecret": {
-                    "type": "string"
-                  }
-                }
+                "serviceName": "string",
+                "serviceCredentials": "string"
               }
             }
           ]

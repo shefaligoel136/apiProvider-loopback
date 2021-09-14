@@ -8,6 +8,7 @@
     "name": "db",
     "user": "",
     "useNewUrlParser": true,
-    "connector": "mongodb"
+    "connector": "mongodb",
+    "allowExtendedOperators": true
   }
 }

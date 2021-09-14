@@ -33,6 +33,9 @@
   "session": {},
   "auth": {},
   "parse": {},
+  "parse:after":{
+    "./middlewares/apiValidation":{}
+  },
   "routes": {
     "loopback#rest": {
       "paths": [
