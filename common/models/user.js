@@ -69,18 +69,19 @@ module.exports = function (user) {
   };
 
   user.usePrivateAPI = async function (req, res) {
-    let APIs;
+    // let APIs;
 
-    Object.entries(privateApi).forEach((value, key) => {
-      if (value.indexOf(req.headers.tokenname) > -1) {
-        APIs = value[1];
-      }
-    });
-    if (APIs) {
-      return { APIs };
-    } else {
-      return "Something is wrong";
-    }
+    // Object.entries(privateApi).forEach((value, key) => {
+    //   if (value.indexOf(req.headers.tokenname) > -1) {
+    //     APIs = value[1];
+    //   }
+    // });
+    // if (APIs) {
+    //   return { APIs };
+    // } else {
+    //   return "Something is wrong";
+    // }
+    return {"hello":"hii"}
   };
 
   user.usePublicAPI = async function () {
@@ -146,24 +147,24 @@ module.exports = function (user) {
 
   user.remoteMethod("usePrivateAPI", {
     description: "validate the user to access the api",
-    accepts: [
-      {
-        type: "object",
-        arg: "req",
-        required: true,
-        http: {
-          source: "req",
-        },
-      },
-      {
-        type: "object",
-        arg: "res",
-        required: true,
-        http: {
-          source: "res",
-        },
-      },
-    ],
+    // accepts: [
+    //   {
+    //     type: "object",
+    //     arg: "req",
+    //     required: true,
+    //     http: {
+    //       source: "req",
+    //     },
+    //   },
+    //   {
+    //     type: "object",
+    //     arg: "res",
+    //     required: true,
+    //     http: {
+    //       source: "res",
+    //     },
+    //   },
+    // ],
     http: {
       path: "/usePrivateAPI",
       verb: "get",

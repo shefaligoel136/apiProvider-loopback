@@ -1,10 +1,4 @@
 {
-  "auth": [
-    {
-      "login": "https://exposeApi/login",
-      "signup": "https://exposeApi/signup",
-      "signout": "https://exposeApi/signout"
-    }
-  ],
-  "map": [{ "allLocation": "https://exposeApi/getLocation" }]
+  "auth": ["/login", "/signup", "/signout", "/api/users/usePrivateAPI"],
+  "map": ["/getLocation"]
 }
